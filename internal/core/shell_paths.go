@@ -1,6 +1,6 @@
 package core
 
-var ShellPaths = map[string]map[string]string{
+var ShellPaths = map[string]map[ShellType]string{
 	"windows": {
 		"cmd":        "cmd.exe",
 		"powershell": "powershell.exe",

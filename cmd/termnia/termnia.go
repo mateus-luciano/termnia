@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"runtime"
 	"termnia/internal/core"
 )
 
 func main() {
-	shell, err := core.NewShellTerminal(defaultShellForOS())
+	shell, err := core.NewShellTerminal(core.ShellCmd)
+	if err != nil || shell == nil {
+		shell, _ = core.NewShellTerminal(core.DefaultShellForOS())
+	}
 	if err != nil {
 		panic(err)
 	}
-
 	if err := shell.Start(); err != nil {
 		panic(err)
 	}
@@ -32,16 +33,5 @@ func main() {
 	for input.Scan() {
 		line := input.Text() + "\n"
 		shell.Stdin().Write([]byte(line))
-	}
-}
-
-func defaultShellForOS() string {
-	switch os := runtime.GOOS; os {
-	case "windows":
-		return "cmd"
-	case "linux", "darwin":
-		return "bash"
-	default:
-		return "bash"
 	}
 }

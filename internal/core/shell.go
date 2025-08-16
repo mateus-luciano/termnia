@@ -26,20 +26,36 @@ type ShellTerminal struct {
 func NewShellTerminal(shell ShellType) (*ShellTerminal, error) {
 	cmdPath := detectShell(shell)
 	if cmdPath == "" {
-		return nil, fmt.Errorf("shell '%s' is not available on this system", shell)
+		fallback := DefaultShellForOS()
+		if fallback == shell {
+			return nil, fmt.Errorf("shell '%s' is not available on this system", shell)
+		}
+		shell = fallback
+		cmdPath = detectShell(shell)
+		if cmdPath == "" {
+			return nil, fmt.Errorf("no available shells found on this system")
+		}
 	}
 	return &ShellTerminal{name: shell, cmd: exec.Command(cmdPath)}, nil
 }
 
 func DefaultShellForOS() ShellType {
+	var priority []ShellType
 	switch runtime.GOOS {
 	case "windows":
-		return ShellCmd
+		priority = []ShellType{ShellCmd, ShellPowerShell, ShellWSL}
 	case "linux", "darwin":
-		return ShellBash
+		priority = []ShellType{ShellBash, ShellZsh}
 	default:
-		return ShellBash
+		priority = []ShellType{ShellBash, ShellZsh}
 	}
+
+	for _, shell := range priority {
+		if detectShell(shell) != "" {
+			return shell
+		}
+	}
+	return priority[0]
 }
 
 func detectShell(shell ShellType) string {

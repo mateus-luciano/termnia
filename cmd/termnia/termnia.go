@@ -4,11 +4,16 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"termnia/internal/config"
 	"termnia/internal/core"
 )
 
 func main() {
-	shell, err := core.NewShellTerminal(core.ShellCmd)
+	cfg, err := config.Load()
+	if err != nil {
+		panic(err)
+	}
+	shell, err := core.NewShellTerminal(cfg.DefaultShell)
 	if err != nil || shell == nil {
 		shell, _ = core.NewShellTerminal(core.DefaultShellForOS())
 	}

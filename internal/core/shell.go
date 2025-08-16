@@ -5,6 +5,7 @@ import (
 	"io"
 	"os/exec"
 	"runtime"
+	"termnia/internal/platform"
 )
 
 type Terminal interface {
@@ -36,7 +37,10 @@ func NewShellTerminal(shell ShellType) (*ShellTerminal, error) {
 			return nil, fmt.Errorf("no available shells found on this system")
 		}
 	}
-	return &ShellTerminal{name: shell, cmd: exec.Command(cmdPath)}, nil
+
+	cmd := exec.Command(cmdPath)
+	platform.ConfigurePlatformSpecific(cmd)
+	return &ShellTerminal{name: shell, cmd: cmd}, nil
 }
 
 func DefaultShellForOS() ShellType {

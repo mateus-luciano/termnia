@@ -1,7 +1,7 @@
 package core
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"runtime"
@@ -26,7 +26,7 @@ type ShellTerminal struct {
 func NewShellTerminal(shell string) (*ShellTerminal, error) {
 	cmdPath := detectShell(shell)
 	if cmdPath == "" {
-		return nil, errors.New("shell is not available on this system")
+		return nil, fmt.Errorf("shell '%s' is not available on this system", shell)
 	}
 
 	return &ShellTerminal{name: shell, cmd: exec.Command(cmdPath)}, nil

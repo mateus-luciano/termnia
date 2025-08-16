@@ -23,6 +23,9 @@ func main() {
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
+		if err := scanner.Err(); err != nil {
+			fmt.Printf("Error reading stdout: %v\n", err)
+		}
 	}()
 
 	input := bufio.NewScanner(os.Stdin)

@@ -33,42 +33,13 @@ func NewShellTerminal(shell string) (*ShellTerminal, error) {
 }
 
 func detectShell(shell string) string {
-	switch runtime.GOOS {
-	case "windows":
-		switch shell {
-		case "cmd":
-			return "cmd.exe"
-		case "powershell":
-			return "powershell.exe"
-		case "wsl":
-			if path, err := exec.LookPath("wsl.exe"); err == nil {
-				return path
-			}
-			return ""
-		default:
-			return "cmd.exe"
+	os := runtime.GOOS
+	if path, ok := ShellPaths[os][shell]; ok {
+		if _, err := exec.LookPath(path); err == nil {
+			return path
 		}
-	case "darwin":
-		switch shell {
-		case "bash":
-			return "/bin/bash"
-		case "zsh":
-			return "/bin/zsh"
-		default:
-			return "/bin/bash"
-		}
-	case "linux":
-		switch shell {
-		case "bash":
-			return "/bin/bash"
-		case "zsh":
-			return "/bin/zsh"
-		default:
-			return "/bin/bash"
-		}
-	default:
-		return ""
 	}
+	return ""
 }
 
 func (s *ShellTerminal) Name() string { return s.name }

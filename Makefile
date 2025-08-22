@@ -1,5 +1,6 @@
 APP := termnia
 BIN := bin
+SRC := ./cmd/termnia
 
 
 .PHONY: tidy run
@@ -17,16 +18,16 @@ go run .
 
 
 win:
-GOOS=windows GOARCH=amd64 go build -o $(BIN)/$(APP)-windows-amd64.exe .
+GOOS=windows GOARCH=amd64 go build -o $(BIN)/$(APP)-windows-amd64.exe $(SRC)
 
 
 linux:
-GOOS=linux GOARCH=amd64 go build -o $(BIN)/$(APP)-linux-amd64 .
+GOOS=linux GOARCH=amd64 go build -o $(BIN)/$(APP)-linux-amd64 $(SRC)
 
 
 mac:
 # Choose one arch (arm64 for Apple Silicon, amd64 for Intel)
-GOOS=darwin GOARCH=arm64 go build -o $(BIN)/$(APP)-darwin-arm64 .
+GOOS=darwin GOARCH=arm64 go build -o $(BIN)/$(APP)-darwin-arm64 $(SRC)
 
 
 # === Packaging with Fyne CLI (creates .exe/.app/.desktop) ===

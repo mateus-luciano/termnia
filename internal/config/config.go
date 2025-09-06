@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"termnia/internal/core"
 
+	"github.com/mateus-luciano/termnia/internal/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,22 +14,31 @@ import (
 var defaultConfigYAML []byte
 
 type Config struct {
-	DefaultShell core.ShellType `yaml:"defaultShell"`
+	DefaultShell types.ShellType `yaml:"defaultShell"`
+	Theme        string          `yaml:"theme"`
+}
+
+var cfg Config
+
+func configDir() string {
+	home, _ := os.UserHomeDir()
+
+	return filepath.Join(home, ".termnia")
+}
+
+func configPath() string {
+	return filepath.Join(configDir(), "config.yaml")
 }
 
 func Load() (*Config, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-
-	configDir := filepath.Join(home, ".termnia")
-	configPath := filepath.Join(configDir, "config.yaml")
+	configDir := configDir()
+	configPath := configPath()
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(configDir, 0755); err != nil {
 			return nil, err
 		}
+
 		if err := os.WriteFile(configPath, defaultConfigYAML, 0644); err != nil {
 			return nil, fmt.Errorf("failed to write default config: %v", err)
 		}
@@ -40,9 +49,24 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %v", err)
 	}
+
 	return &cfg, nil
+}
+
+func Get() Config {
+	return cfg
+}
+
+func Save(c Config) error {
+	cfg = c
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to serialize config: %v", err)
+	}
+
+	return os.WriteFile(configPath(), data, 0644)
 }

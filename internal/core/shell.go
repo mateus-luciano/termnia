@@ -5,7 +5,9 @@ import (
 	"io"
 	"os/exec"
 	"runtime"
-	"termnia/internal/platform"
+
+	"github.com/mateus-luciano/termnia/internal/platform"
+	"github.com/mateus-luciano/termnia/internal/types"
 )
 
 type Terminal interface {
@@ -21,18 +23,22 @@ type ShellTerminal struct {
 	stdin  io.WriteCloser
 	stdout io.ReadCloser
 	stderr io.ReadCloser
-	name   ShellType
+	name   types.ShellType
 }
 
-func NewShellTerminal(shell ShellType) (*ShellTerminal, error) {
+func NewShellTerminal(shell types.ShellType) (*ShellTerminal, error) {
 	cmdPath := detectShell(shell)
+
 	if cmdPath == "" {
 		fallback := DefaultShellForOS()
+
 		if fallback == shell {
 			return nil, fmt.Errorf("shell '%s' is not available on this system", shell)
 		}
+
 		shell = fallback
 		cmdPath = detectShell(shell)
+
 		if cmdPath == "" {
 			return nil, fmt.Errorf("no available shells found on this system")
 		}
@@ -40,18 +46,20 @@ func NewShellTerminal(shell ShellType) (*ShellTerminal, error) {
 
 	cmd := exec.Command(cmdPath)
 	platform.ConfigurePlatformSpecific(cmd)
+
 	return &ShellTerminal{name: shell, cmd: cmd}, nil
 }
 
-func DefaultShellForOS() ShellType {
-	var priority []ShellType
+func DefaultShellForOS() types.ShellType {
+	var priority []types.ShellType
+
 	switch runtime.GOOS {
 	case "windows":
-		priority = []ShellType{ShellCmd, ShellPowerShell, ShellWSL}
+		priority = []types.ShellType{types.ShellCmd, types.ShellPowerShell, types.ShellWSL}
 	case "linux", "darwin":
-		priority = []ShellType{ShellBash, ShellZsh}
+		priority = []types.ShellType{types.ShellBash, types.ShellZsh}
 	default:
-		priority = []ShellType{ShellBash, ShellZsh}
+		priority = []types.ShellType{types.ShellBash, types.ShellZsh}
 	}
 
 	for _, shell := range priority {
@@ -59,11 +67,13 @@ func DefaultShellForOS() ShellType {
 			return shell
 		}
 	}
+
 	return priority[0]
 }
 
-func detectShell(shell ShellType) string {
+func detectShell(shell types.ShellType) string {
 	os := runtime.GOOS
+
 	if paths, ok := ShellPaths[os]; ok {
 		if path, ok := paths[shell]; ok {
 			if _, err := exec.LookPath(path); err == nil {
@@ -71,28 +81,51 @@ func detectShell(shell ShellType) string {
 			}
 		}
 	}
+
 	return ""
 }
 
 func (s *ShellTerminal) Start() error {
 	var err error
+
 	s.stdin, err = s.cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
+
 	s.stdout, err = s.cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
+
 	s.stderr, err = s.cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
+
 	return s.cmd.Start()
 }
 
-func (s *ShellTerminal) Stdin() io.Writer  { return s.stdin }
-func (s *ShellTerminal) Stdout() io.Reader { return s.stdout }
-func (s *ShellTerminal) Stderr() io.Reader { return s.stderr }
-func (s *ShellTerminal) Name() ShellType   { return s.name }
-func (s *ShellTerminal) Kill() error       { return s.cmd.Process.Kill() }
+func (s *ShellTerminal) Stdin() io.Writer {
+	return s.stdin
+}
+
+func (s *ShellTerminal) Stdout() io.Reader {
+	return s.stdout
+}
+
+func (s *ShellTerminal) Stderr() io.Reader {
+	return s.stderr
+}
+
+func (s *ShellTerminal) Name() types.ShellType {
+	return s.name
+}
+
+func (s *ShellTerminal) Kill() error {
+	if s.cmd.Process == nil {
+		return fmt.Errorf("process not started")
+	}
+
+	return s.cmd.Process.Kill()
+}

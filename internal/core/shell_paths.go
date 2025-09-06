@@ -1,6 +1,8 @@
 package core
 
-var ShellPaths = map[string]map[ShellType]string{
+import "github.com/mateus-luciano/termnia/internal/types"
+
+var ShellPaths = map[string]map[types.ShellType]string{
 	"windows": {
 		"cmd":        "cmd.exe",
 		"powershell": "powershell.exe",

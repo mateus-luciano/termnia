@@ -29,10 +29,12 @@ func RedirectIO() error {
 	if err != nil {
 		return err
 	}
+
 	stdout, err := os.OpenFile("CONOUT$", os.O_RDWR, 0)
 	if err != nil {
 		return err
 	}
+
 	stderr, err := os.OpenFile("CONOUT$", os.O_RDWR, 0)
 	if err != nil {
 		return err
